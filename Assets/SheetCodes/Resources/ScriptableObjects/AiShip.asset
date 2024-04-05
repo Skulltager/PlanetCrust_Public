@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 181e36c1c63bba549a2bc35b4f7b60d1, type: 3}
+  m_Name: AiShip
+  m_EditorClassIdentifier: 
+  records:
+  - identifier: 1
+    _prefab: {fileID: 5263310471254010054, guid: fd58cffc31f78704c8af5a17f4d99cb7, type: 3}
+    _hull: 400
+    _armor: 200
+    _shield: 100
+    _acceleration: 20
+    _topSpeed: 25
+    _rotationAcceleration: 180
+    _radius: 2.2
+    _pathFindingMinInterval: 1.5
+    _pathFindingMaxInterval: 2
+    _impactResistance: 50
+    _baseMinImpactDamage: 10
+    _baseMaxImpactDamage: 15
+    _minVelocityImpactDamage: 2
+    _maxVelocityImpactDamage: 5
+    _minVelocityImpactSpeed: 10

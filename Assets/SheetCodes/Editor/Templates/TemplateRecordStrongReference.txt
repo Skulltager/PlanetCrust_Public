@@ -1,0 +1,24 @@
+﻿		//Does this type no longer exist? Delete from here..
+		[ColumnName("#PROPERTY_IDENTIFIER#")] [SerializeField] private #COMPONENT_TYPE# _#PROPERTY_NAME_LOWER# = default;
+		public #COMPONENT_TYPE# #PROPERTY_NAME_UPPER# 
+		{ 
+			get { return _#PROPERTY_NAME_LOWER#; } 
+            set
+            {
+                if (!CheckEdit())
+                    return;
+#if UNITY_EDITOR
+                if (value != null)
+                {
+                    string assetPath = AssetDatabase.GetAssetPath(value);
+                    if(string.IsNullOrEmpty(assetPath))
+                    {
+                        Debug.LogError("SheetCodes: Reference Objects must be a direct reference from your project folder.");
+                        return;
+                    }
+                }
+                _#PROPERTY_NAME_LOWER# = value;
+#endif
+            }
+        }
+		//..To here

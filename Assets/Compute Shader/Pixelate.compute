@@ -1,0 +1,176 @@
+#pragma kernel Pixelate
+#pragma kernel CleanUp
+#pragma kernel CalculateVerticalEdges
+#pragma kernel CalculateHorizontalEdges
+
+int sourceWidth;
+int sourceHeight;
+int targetWidth;
+int targetHeight;
+int sourceXOffset;
+int sourceYOffset;
+int bottomPadding;
+int leftPadding;
+float blendSize;
+int colorLayers;
+Texture2D<float4> source;
+RWTexture2D<float4> target;
+RWStructuredBuffer<int> topCut;
+RWStructuredBuffer<int> bottomCut;
+RWStructuredBuffer<int> leftCut;
+RWStructuredBuffer<int> rightCut;
+RWStructuredBuffer<int> pixelCheck;
+
+[numthreads(32, 1, 1)]
+void CalculateVerticalEdges(uint3 id : SV_DispatchThreadID)
+{
+	if (id.x >= (uint) sourceWidth)
+		return;
+
+	int yMin;
+	int yMax;
+
+	int i;
+	bool found = false;
+	for (i = 0; i < sourceHeight; i++)
+	{
+		float3 sourceColor = source[int2(id.x, i)].rgb;
+		if (sourceColor.r == 0 && sourceColor.g == 0 && sourceColor.r == 0)
+			continue;
+
+		found = true;
+		break;
+	}
+
+	if (!found)
+	{
+		bottomCut[id.x] = sourceHeight;
+		topCut[id.x] = sourceHeight;
+		return;
+	}
+
+	bottomCut[id.x] = i;
+
+	for (i = 0; i < sourceHeight; i++)
+	{
+		float3 sourceColor = source[int2(id.x, sourceHeight - i - 1)].rgb;
+		if (sourceColor.r == 0 && sourceColor.g == 0 && sourceColor.r == 0)
+			continue;
+
+		topCut[id.x] = i;
+		break;
+	}
+}
+
+[numthreads(32, 1, 1)]
+void CalculateHorizontalEdges(uint3 id : SV_DispatchThreadID)
+{
+	if (id.x >= (uint) sourceHeight)
+		return;
+
+	int yMin;
+	int yMax;
+
+	int i;
+	bool found = false;
+	for (i = 0; i < sourceWidth; i++)
+	{
+		float3 sourceColor = source[int2(i, id.x)].rgb;
+		if (sourceColor.r == 0 && sourceColor.g == 0 && sourceColor.r == 0)
+			continue;
+
+		found = true;
+		break;
+	}
+
+	if (!found)
+	{
+		leftCut[id.x] = sourceWidth;
+		rightCut[id.x] = sourceWidth;
+		return;
+	}
+
+	leftCut[id.x] = i;
+
+	for (i = 0; i < sourceWidth; i++)
+	{
+		float3 sourceColor = source[int2(sourceWidth - i - 1, id.x)].rgb;
+		if (sourceColor.r == 0 && sourceColor.g == 0 && sourceColor.r == 0)
+			continue;
+		rightCut[id.x] = i;
+		break;
+	}
+}
+
+[numthreads(32, 32, 1)]
+void Pixelate(uint3 id : SV_DispatchThreadID)
+{
+	if (id.x >= (uint) (targetWidth - leftPadding * 2) || id.y >= (uint) (targetHeight - bottomPadding * 2))
+		return;
+
+	float4 color;
+	float xStart = blendSize * (float)id.x + sourceXOffset;
+	float yStart = blendSize * (float)id.y + sourceYOffset;
+	int xStartIndex = (int)xStart;
+	int yStartIndex = (int)yStart;
+	float xEnd = blendSize * (float)(id.x + 1) + sourceXOffset;
+	float yEnd = blendSize * (float)(id.y + 1) + sourceYOffset;
+	int xEndIndex = (int)xEnd;
+	int yEndIndex = (int)yEnd;
+
+	float totalBlendStrength;
+	for (int i = xStartIndex; i <= xEndIndex; i++)
+	{
+		float xInfluence;
+		if (i == xStartIndex)
+			xInfluence = 1 - fmod(xStart, 1);
+		else if (i == xEndIndex)
+			xInfluence = xEnd > 0 ? fmod(xEnd, 1) : 0;
+		else
+			xInfluence = 1;
+		for (int j = yStartIndex; j <= yEndIndex; j++)
+		{
+			float yInfluence;
+			if (j == yStartIndex)
+				yInfluence = 1 - fmod(yStart, 1);
+			else if (j == yEndIndex)
+				yInfluence = yEnd > 0 ? fmod(yEnd, 1) : 0;
+			else
+				yInfluence = 1;
+
+			float4 sourceColor = source[int2(i, j)];
+			if (sourceColor.r == 0 && sourceColor.g == 0 && sourceColor.r == 0)
+				continue;
+
+			float blendStrength = xInfluence * yInfluence;
+			totalBlendStrength += blendStrength;
+			color += sourceColor * blendStrength;
+		}
+	}
+
+	if (color.r == 0 && color.g == 0 && color.b == 0)
+	{
+		pixelCheck[id.x + leftPadding + targetWidth * (id.y + bottomPadding)] = false;
+		return;
+	}
+
+	pixelCheck[id.x + leftPadding + targetWidth * (id.y + bottomPadding)] = true;
+	color /= totalBlendStrength;
+
+	uint rLayer = (uint) round(color.r * (float)colorLayers);
+	uint gLayer = (uint) round(color.g * (float)colorLayers);
+	uint bLayer = (uint) round(color.b * (float)colorLayers);
+
+	float4 newColor = float4(((float)rLayer) / colorLayers, ((float)gLayer) / colorLayers, (float)bLayer / colorLayers, 1);
+	target[id.xy + int2(leftPadding, bottomPadding)] = newColor;
+}
+
+[numthreads(32, 32, 1)]
+void CleanUp(uint3 id : SV_DispatchThreadID)
+{
+	if (id.x >= (uint) targetWidth || id.y >= (uint) targetHeight)
+		return;
+
+	if (!pixelCheck[id.x + targetWidth * id.y])
+		target[id.xy] = float4(0, 0, 0, 0);
+}

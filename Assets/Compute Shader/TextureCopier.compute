@@ -1,0 +1,18 @@
+﻿#pragma kernel Copy
+
+int sourceWidth;
+int sourceHeight;
+int targetXPosition;
+int targetYPosition;
+
+Texture2D<float4> source;
+RWTexture2D<float4> target;
+
+[numthreads(32, 32, 1)]
+void Copy(uint3 id : SV_DispatchThreadID)
+{
+	if (id.x >= sourceWidth || id.y >= sourceHeight)
+		return;
+
+	target[id.xy + int2(targetXPosition, targetYPosition)] = source[id.xy];
+}

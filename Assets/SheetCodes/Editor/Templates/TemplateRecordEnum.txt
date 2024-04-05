@@ -1,0 +1,4 @@
+﻿		//Does this type no longer exist? Delete from here..
+		[ColumnName("#PROPERTY_IDENTIFIER#")] [SerializeField] private #ENUM_TYPE# _#PROPERTY_NAME_LOWER# = default;
+		public #ENUM_TYPE# #PROPERTY_NAME_UPPER# { get { return _#PROPERTY_NAME_LOWER#; } set { if(!CheckEdit()) return; _#PROPERTY_NAME_LOWER# = value; }}
+		//..To here

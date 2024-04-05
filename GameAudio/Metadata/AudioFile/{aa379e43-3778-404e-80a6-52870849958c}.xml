@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="AudioFile" id="{aa379e43-3778-404e-80a6-52870849958c}">
+		<property name="assetPath">
+			<value>625114__newlocknew__expldsgn-powerful-explosion-2-1-em-28lrs.wav</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>48</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>10.441020833333333</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{e02d4462-35e0-4af7-9c9b-9733ccd63349}</destination>
+		</relationship>
+	</object>
+</objects>

@@ -1,0 +1,42 @@
+﻿		//Does this type no longer exist? Delete from here..
+		[ColumnName("#PROPERTY_IDENTIFIER#")] [SerializeField] private #COMPONENT_TYPE#[] _#PROPERTY_NAME_LOWER# = default;
+		public #COMPONENT_TYPE#[] #PROPERTY_NAME_UPPER# 
+		{ 
+			get { return _#PROPERTY_NAME_LOWER#; } 
+            set
+            {
+                if (!CheckEdit())
+                    return;
+#if UNITY_EDITOR
+                if (value == null)
+                {
+                    Debug.LogWarning("SheetCodes: Array cannot be null. Converting to an empty array instead.");
+                    _#PROPERTY_NAME_LOWER# = new #COMPONENT_TYPE#[0];
+                }
+                else
+                {
+                    #COMPONENT_TYPE#[] copyArray = new #COMPONENT_TYPE#[value.Length];
+                    for(int i = 0; i < value.Length; i++)
+                    {
+                        #COMPONENT_TYPE# item = value[i];
+                        if (item != null)
+                        {
+                            string assetPath = AssetDatabase.GetAssetPath(item);
+                            if (string.IsNullOrEmpty(assetPath))
+                            {
+                                Debug.LogError(string.Format("SheetCodes: Item at element {0} is not a direct reference from your project folder. Index value set to null.", i));
+                                copyArray[i] = null;
+                                continue;
+                            }
+                            else
+                                copyArray[i] = item;
+                        }
+                        else
+                            copyArray[i] = null;
+                    }
+					_#PROPERTY_NAME_LOWER# = copyArray;
+                }
+#endif
+            }
+        }
+		//..To here
